@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Books - Library Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f6f9;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 2000;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .header-title img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            margin-right: 15px;
+        }
+
+        .header-title h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .logout-btn {
+            margin-left: auto;
+            padding: 10px 25px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #c0392b;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            width: 270px;
+            height: calc(100vh - 80px);
+            background: #2c3e50;
+            transition: transform 0.4s ease;
+            z-index: 1000;
+            padding-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 16px 30px;
+            color: #ecf0f1;
+            text-decoration: none;
+            font-size: 18px;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background: #34495e;
+            padding-left: 40px;
+        }
+
+        .sidebar a.active {
+            background: #3498db;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 270px;
+            padding: 100px 40px 60px;
+            min-height: 100vh;
+            transition: margin-left 0.4s ease;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 100px 20px 60px;
+            }
+        }
+
+        .page-title {
+            font-size: 32px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .page-subtitle {
+            color: #7f8c8d;
+            margin-bottom: 40px;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        /* Add Book Form */
+        .add-book-container {
+            background: white;
+            border-radius: 18px;
+            padding: 40px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 14px 16px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .cover-preview {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .submit-btn {
+            grid-column: span 2;
+            padding: 16px;
+            background: linear-gradient(135deg, #8e44ad, #3498db);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .success-message {
+            grid-column: span 2;
+            text-align: center;
+            padding: 20px;
+            background: #d5f4e6;
+            color: #27ae60;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 500;
+            display: none;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .submit-btn, .success-message {
+                grid-column: span 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title" onclick="toggleSidebar()">
+            <img src="images/learning.png" alt="Logo">
+            <h1>Library System</h1>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html">Home</a>
+        <a href="add-books.html"  class="active">Add Books</a>
+        <a href="issue-return.html">Issue/Return Books</a>
+        <a href="#">Students</a>
+        <a href="#">Pending Payments</a>
+        <a href="#">Reports</a>
+        <a href="#">About</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <h2 class="page-title">Add New Book</h2>
+        <p class="page-subtitle">Fill in the details to add a book to the library collection</p>
+
+        <div class="add-book-container">
+    <form id="addBookForm" enctype="multipart/form-data">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="title">Book Title *</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+
+            <div class="form-group">
+                <label for="author">Author *</label>
+                <input type="text" id="author" name="author" required>
+            </div>
+
+            <div class="form-group">
+                <label for="isbn">ISBN</label>
+                <input type="text" id="isbn" name="isbn" placeholder="e.g. 978-3-16-148410-0">
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category *</label>
+                <select id="category" name="category" required>
+                    <option value="">Select Category</option>
+                    <option value="Fiction">Fiction</option>
+                    <option value="Non-Fiction">Non-Fiction</option>
+                    <option value="Science">Science</option>
+                    <option value="Technology">Technology</option>
+                    <option value="History">History</option>
+                    <option value="Biography">Biography</option>
+                    <option value="Self-Help">Self-Help</option>
+                    <option value="Children">Children</option>
+                    <option value="Reference">Reference</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="year">Publication Year</label>
+                <input type="number" id="year" name="year" min="1800" max="2025" placeholder="e.g. 2023">
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">Quantity *</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+            </div>
+
+            <div class="form-group" style="grid-column: span 2;">
+                <label for="cover">Book Cover Image</label>
+                <input type="file" id="cover" name="cover" accept="image/*">
+                <img id="coverPreview" class="cover-preview" alt="Book Cover Preview">
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn">Add Book to Library</button>
+
+        <div class="success-message" id="successMessage">
+            Book added successfully!
+        </div>
+    </form>
+</div>
+
+    </div>
+
+    <script src = "js/addbooks.js"></script>
+</body>
+</html>
+

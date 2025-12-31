@@ -1,0 +1,5 @@
+com\LibManSys\LibManSys\Repository\UserRepository.class
+com\LibManSys\LibManSys\LibManSysApplication.class
+com\LibManSys\LibManSys\controller\LoginCheck.class
+com\LibManSys\LibManSys\dto\LoginRequest.class
+com\LibManSys\LibManSys\entity\User.class
