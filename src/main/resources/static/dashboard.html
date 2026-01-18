@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel = "stylesheet" href = "css/dashboard.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title" onclick="toggleSidebar()">
+            <img src="images/learning.png" alt="Logo">
+            <h1>Library System</h1>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html"  class="active">Home</a>
+        <a href="add-books.html">Add Books</a>
+        <a href="issue-return.html" >Issue/Return Books</a>
+        <a href="students.html">Students</a>
+        <a href="pending-payments.html">Pending Payments</a>
+        <a href="reports.html">Reports</a>
+        <a href="#">About</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <h2 class="page-title">Dashboard Overview</h2>
+        <p class="page-subtitle">Welcome back! Here's your library summary.</p>
+
+        <!-- Budget Cards -->
+        <div class="budget-grid">
+            <div class="budget-card" onclick="updateBudget()">
+                <h3>Monthly Budget</h3>
+                <div class="amount" id="monthlyBudget">₹45,000</div>
+            </div>
+            <div class="budget-card">
+                <h3>Budget Spent</h3>
+                <div class="amount" id="Spent">₹18,500</div>
+            </div>
+            <div class="budget-card">
+                <h3>Budget Left</h3>
+                <div class="amount" id="budgetLeft">₹26,500</div>
+            </div>
+            <div class="budget-card">
+                <h3>Total Books</h3>
+                <div class="amount" id="totalBooks">2,847</div>
+            </div>
+            <div class="budget-card">
+                <h3>Books Issued</h3>
+                <div class="amount" id="books_Issued">312</div>
+            </div>
+            <div class="budget-card">
+                <h3>Overdue Books</h3>
+                <div class="amount" style="color: #ffeaa7;" id="Overdue">18</div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-container">
+            <h3 class="section-title">Monthly Book Issuance Trend (2025)</h3>
+            <canvas id="lineChart" height="120"></canvas>
+        </div>
+
+        <!-- Overdue Books Section -->
+        <div class="overdue-container" style = "overflow-x: hidden;">
+            <h3 class="section-title">Overdue Books</h3>
+            <div class="book-list">
+                <div class="book-item status-overdue">
+                    <div class="book-details">
+                        <h4>Jennifer Anderson</h4>
+                        <p><strong>Book:</strong> "The Great Gatsby"</p>
+                        <p><strong>Issue Date:</strong> 10 Dec 2025</p>
+                        <p><strong>Due Date:</strong> 20 Dec 2025</p>
+                    </div>
+                    <div class="book-status">8 Days Overdue<br>₹150 Fine</div>
+                </div>
+
+                <div class="book-item status-overdue">
+                    <div class="book-details">
+                        <h4>Rahul Sharma</h4>
+                        <p><strong>Book:</strong> "Introduction to Algorithms"</p>
+                        <p><strong>Issue Date:</strong> 05 Dec 2025</p>
+                        <p><strong>Due Date:</strong> 15 Dec 2025</p>
+                    </div>
+                    <div class="book-status">13 Days Overdue<br>₹300 Fine</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issued Books Section (NEW) -->
+        <div class="issued-container">
+            <h3 class="section-title">Currently Issued Books</h3>
+            <div class="book-list">
+                <div class="book-item status-on-time">
+                    <div class="book-details">
+                        <h4>Aarav Patel</h4>
+                        <p><strong>Book:</strong> "Atomic Habits"</p>
+                        <p><strong>Issue Date:</strong> 20 Dec 2025</p>
+                        <p><strong>Due Date:</strong> 05 Jan 2026</p>
+                    </div>
+                    <div class="book-status">8 Days Left</div>
+                </div>
+
+                <div class="book-item status-near-due">
+                    <div class="book-details">
+                        <h4>Sofia Khan</h4>
+                        <p><strong>Book:</strong> "Clean Code"</p>
+                        <p><strong>Issue Date:</strong> 22 Dec 2025</p>
+                        <p><strong>Due Date:</strong> 01 Jan 2026</p>
+                    </div>
+                    <div class="book-status">4 Days Left</div>
+                </div>
+
+                <div class="book-item status-on-time">
+                    <div class="book-details">
+                        <h4>Michael Chen</h4>
+                        <p><strong>Book:</strong> "Sapiens"</p>
+                        <p><strong>Issue Date:</strong> 15 Dec 2025</p>
+                        <p><strong>Due Date:</strong> 05 Jan 2026</p>
+                    </div>
+                    <div class="book-status">8 Days Left</div>
+                </div>
+
+                <div class="book-item status-near-due">
+                    <div class="book-details">
+                        <h4>Priya Singh</h4>
+                        <p><strong>Book:</strong> "The Psychology of Money"</p>
+                        <p><strong>Issue Date:</strong> 24 Dec 2025</p>
+                        <p><strong>Due Date:</strong> 31 Dec 2025</p>
+                    </div>
+                    <div class="book-status">3 Days Left</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Reload Button -->
+    <button class="reload-btn" onclick="location.reload()" title="Refresh Page">⟳</button>
+
+    <script>
+        // Authentication check
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+    </script>
+    <script src = "js/dashboard.js"></script>
+    <script src = "js/Charts.js"></script>
+</body>
+</html>

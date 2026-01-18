@@ -1,0 +1,42 @@
+.Monthly-Budget{
+    display: flex;
+    position: relative;
+    top : 15px;
+    left: 15px;
+    background-color: rgb(101, 65, 65);
+    width: 250px;
+    border-radius: 18px;
+    margin: 10px;
+    cursor: pointer;
+}
+.Monthlyboxtext{
+    position: relative;
+    display : flexbox;
+    color: bisque;
+    width : 250px;
+    padding: 15px;
+}
+#Set-Budget{
+    display: flex;
+    position: absolute;
+    top : 30%;
+    left: 38%;
+    background-color: rgb(101, 65, 65);
+    width: 250px;
+    border-radius: 18px;
+    padding: 15px;
+}
+#Add-BudgetBox{
+    position: relative;
+    display : flexbox;
+    color: bisque;
+    width : 250px;
+    padding: 20px;
+    align-items: center;
+}
+#Reload-Button{
+    position: absolute;
+    top : 20px;
+    left: 82%;
+    cursor: pointer;
+}

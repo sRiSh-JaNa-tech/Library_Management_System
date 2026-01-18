@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Sample Page -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Library Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel = "stylesheet" href = "css/reports.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title" onclick="toggleSidebar()">
+            <img src="images/learning.png" alt="Logo">
+            <h1>Library System</h1>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html">Home</a>
+        <a href="add-books.html">Add Books</a>
+        <a href="issue-return.html">Issue/Return Books</a>
+        <a href="students.html">Students</a>
+        <a href="pending-payments.html">Pending Payments</a>
+        <a href="reports.html" class="active">Reports</a>
+        <a href="#">About</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <h2 class="page-title">Library Reports</h2>
+        <p class="page-subtitle">Comprehensive insights and analytics as of January 02, 2026</p>
+
+        <!-- Summary Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Books</h3>
+                <div class="value">2,847</div>
+            </div>
+            <div class="stat-card">
+                <h3>Books Issued</h3>
+                <div class="value">312</div>
+            </div>
+            <div class="stat-card">
+                <h3>Active Students</h3>
+                <div class="value">48</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Fines Collected (2025)</h3>
+                <div class="value">₹4,250</div>
+            </div>
+            <div class="stat-card">
+                <h3>Overdue Books</h3>
+                <div class="value">18</div>
+            </div>
+            <div class="stat-card">
+                <h3>Pending Fines</h3>
+                <div class="value">₹1,850</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="charts-grid">
+            <!-- Issuance Trend -->
+            <div class="chart-container">
+                <h3 class="chart-title">Monthly Book Issuance (2025)</h3>
+                <canvas id="issuanceChart"></canvas>
+            </div>
+
+            <!-- Category Distribution -->
+            <div class="chart-container">
+                <h3 class="chart-title">Books by Category</h3>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top Lists -->
+        <div class="top-lists">
+            <!-- Most Issued Books -->
+            <div class="list-container">
+                <h3 class="list-title">Top 5 Most Issued Books</h3>
+                <div class="top-item"><strong>1. Atomic Habits</strong><span>42 issues</span></div>
+                <div class="top-item"><strong>2. Clean Code</strong><span>38 issues</span></div>
+                <div class="top-item"><strong>3. Sapiens</strong><span>35 issues</span></div>
+                <div class="top-item"><strong>4. The Psychology of Money</strong><span>31 issues</span></div>
+                <div class="top-item"><strong>5. 1984 by George Orwell</strong><span>28 issues</span></div>
+            </div>
+
+            <!-- Top Borrowers -->
+            <div class="list-container">
+                <h3 class="list-title">Top 5 Active Borrowers</h3>
+                <div class="top-item"><strong>1. Michael Chen</strong><span>12 books</span></div>
+                <div class="top-item"><strong>2. Aarav Patel</strong><span>10 books</span></div>
+                <div class="top-item"><strong>3. Priya Singh</strong><span>9 books</span></div>
+                <div class="top-item"><strong>4. Sofia Khan</strong><span>8 books</span></div>
+                <div class="top-item"><strong>5. Emma Wilson</strong><span>7 books</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Authentication check
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        // Monthly Issuance Line Chart
+        new Chart(document.getElementById('issuanceChart'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'Books Issued',
+                    data: [180, 220, 190, 250, 280, 310, 290, 320, 350, 330, 360, 312],
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'top' } },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Category Distribution Doughnut Chart
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Fiction', 'Non-Fiction', 'Science', 'Technology', 'History', 'Biography', 'Self-Help', 'Others'],
+                datasets: [{
+                    data: [720, 580, 450, 380, 320, 220, 150, 27],
+                    backgroundColor: [
+                        '#3498db', '#e74c3c', '#2ecc71', '#f39c12',
+                        '#9b59b6', '#1abc9c', '#34495e', '#95a5a6'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

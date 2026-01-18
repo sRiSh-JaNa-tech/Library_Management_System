@@ -1,0 +1,96 @@
+.header-title {
+    display: flex;
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 2000;
+    color: black;
+    font-size: 20px;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
+}
+
+.header-title img{
+    width: 50px;   /* circle width */
+    height: 50px;  /* circle height */
+    object-fit: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: none;
+    margin-right: 30px;
+    padding: 0;     /* <- remove padding, it breaks circular shape */
+}
+.sidebar {
+    height: 1000px;
+    width: 270px;
+    background: wheat;
+    position: relative;
+    top: -10px;
+    left: -10px;
+    overflow-x: hidden;
+    padding-top: 120px;
+    z-index: 1000;
+}
+
+/*.sidebar.active {*/
+/*    left: 0;*/
+/*}*/
+
+.sidebar a {
+    padding: 15px 25px;
+    text-decoration: none;
+    font-size: 18px;
+    color: black;
+    display: block;
+    transition: 0.3s;
+}
+
+.sidebar a:hover {
+    background-color: #575757;
+}
+
+.Monthly-Budget{
+    display: flex;
+    position: relative;
+    top : 15px;
+    left: 15px;
+    background-color: rgb(101, 65, 65);
+    width: 250px;
+    border-radius: 18px;
+    margin: 10px;
+    cursor: pointer;
+}
+.Monthlyboxtext{
+    position: relative;
+    display : flexbox;
+    color: bisque;
+    width : 250px;
+    padding: 15px;
+}
+#Set-Budget{
+    display: flex;
+    position: absolute;
+    top : 30%;
+    left: 38%;
+    background-color: rgb(101, 65, 65);
+    width: 250px;
+    border-radius: 18px;
+    padding: 15px;
+}
+#Add-BudgetBox{
+    position: relative;
+    display : flexbox;
+    color: bisque;
+    width : 250px;
+    padding: 20px;
+    align-items: center;
+}
+#Reload-Button{
+    position: absolute;
+    top : 20px;
+    left: 82%;
+    cursor: pointer;
+}

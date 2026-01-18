@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue/Return Books - Library Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel = "stylesheet" href = "css/issue-return.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title" onclick="toggleSidebar()">
+            <img src="images/learning.png" alt="Logo">
+            <h1>Library System</h1>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html">Home</a>
+        <a href="add-books.html">Add Books</a>
+        <a href="issue-return.html" class="active">Issue/Return Books</a>
+        <a href="students.html">Students</a>
+        <a href="pending-payments.html">Pending Payments</a>
+        <a href="reports.html">Reports</a>
+        <a href="#">About</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <h2 class="page-title">Issue/Return Books</h2>
+        <p class="page-subtitle">View and manage issued and returned books</p>
+
+        <div class="filters">
+            <select class="filter-select" id="statusFilter">
+                <option value="all">All</option>
+                <option value="issued">Only Issued</option>
+                <option value="returned">Only Returned</option>
+            </select>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search by student, book, or date...">
+        </div>
+
+        <div class="books-table-container">
+            <table class="books-table" id="booksTable">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Book Title</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Return Date</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="issuanceBody"></tbody>
+
+            </table>
+            <p class="no-results" id="noResults">No results found</p>
+        </div>
+    </div>
+
+    <script>
+        // Authentication check
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+
+        const statusFilter = document.getElementById('statusFilter');
+        const searchInput = document.getElementById('searchInput');
+        const table = document.getElementById('booksTable');
+        const noResults = document.getElementById('noResults');
+
+        function getRows() {
+            return document.querySelectorAll('#issuanceBody tr');
+        }
+
+        function filterTable() {
+            const filter = statusFilter.value;
+            const search = searchInput.value.toLowerCase();
+            let visibleCount = 0;
+
+            getRows().forEach(row => {
+                const status = row.getAttribute('data-status');
+                const text = row.textContent.toLowerCase();
+
+                const statusMatch = (filter === 'all') || 
+                    (filter === 'issued' && (status === 'issued' || status === 'overdue')) || 
+                    (filter === 'returned' && status === 'returned');
+
+                const searchMatch = text.includes(search);
+
+                if (statusMatch && searchMatch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+        }
+
+
+        statusFilter.addEventListener('change', filterTable);
+        searchInput.addEventListener('input', filterTable);
+
+        // Initial filter
+        filterTable();
+    </script>
+    <script>
+    async function loadIssuance() {
+        const res = await fetch('/api/library/issuance');
+        const data = await res.json();
+
+        if (!Array.isArray(data)) {
+            console.error("Unexpected response:", data);
+            alert("Failed to load issuance data");
+            return;
+        }
+
+        const tbody = document.getElementById('issuanceBody');
+        tbody.innerHTML = '';
+
+        data.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.dataset.status = r.status;
+
+            tr.innerHTML = `
+            <td>${r.student}</td>
+            <td>${r.book}</td>
+            <td>${formatDate(r.issueDate)}</td>
+            <td>${formatDate(r.dueDate)}</td>
+            <td>${r.returnDate ? formatDate(r.returnDate) : '-'}</td>
+            <td><span class="status status-${r.status}">${capitalize(r.status)}</span></td>
+            <td>
+                ${(r.status === 'issued' || r.status === 'overdue') ? 
+                `<button onclick="returnBook(${r.issueId})">Return</button>` : ''}
+                <button onclick="deleteRow(${r.issueId})">Delete</button>
+            </td>`;
+            tbody.appendChild(tr);
+        });
+
+        filterTable();
+    }
+
+    async function returnBook(id) {
+        await fetch(`/api/library/issuance/${id}/return`, { method: 'PUT' });
+        loadIssuance();
+    }
+
+    async function deleteRow(id) {
+        if (!confirm("Delete record?")) return;
+        await fetch(`/api/library/issuance/${id}`, { method: 'DELETE' });
+        loadIssuance();
+    }
+
+    loadIssuance();
+    </script>
+    <script>
+    function formatDate(dateStr) {
+        if (!dateStr) return "-";
+
+        const d = new Date(dateStr);
+        if (isNaN(d)) return dateStr;
+
+        return d.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric"
+        });
+    }
+</script>
+    <script>
+        function capitalize(str) {
+            if (!str) return "";
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students - Library Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel = "stylesheet" href = "css/students.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title" onclick="toggleSidebar()">
+            <img src="images/learning.png" alt="Logo">
+            <h1>Library System</h1>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html">Home</a>
+        <a href="add-books.html">Add Books</a>
+        <a href="issue-return.html">Issue/Return Books</a>
+        <a href="students.html" class="active">Students</a>
+        <a href="pending-payments.html">Pending Payments</a>
+        <a href="reports.html">Reports</a>
+        <a href="#">About</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <h2 class="page-title">Students Management</h2>
+        <p class="page-subtitle">View and manage all registered students</p>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search by name, ID, or email...">
+            </div>
+            <select class="filter-status" id="statusFilter">
+                <option value="all">All Students</option>
+                <option value="active">Active Only</option>
+                <option value="inactive">Inactive Only</option>
+            </select>
+            <button class="add-student-btn" onclick="openModal()">+ Add New Student</button>
+        </div>
+
+        <div class="table-container">
+            <table id="studentsTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">Name</th>
+                        <th onclick="sortTable(1)">Student ID</th>
+                        <th onclick="sortTable(2)">Email</th>
+                        <th onclick="sortTable(3)">Phone</th>
+                        <th onclick="sortTable(4)">Books Issued</th>
+                        <th onclick="sortTable(5)">Overdue</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsBody"></tbody>
+            </table>
+            <p class="no-results" id="noResults">No students found matching your criteria.</p>
+        </div>
+    </div>
+
+    <script>
+        // Authentication check
+        if (!localStorage.getItem('isLoggedIn')) {
+            window.location.href = 'index.html';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        function logout() {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = 'index.html';
+        }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadStudents();
+
+            document.getElementById('searchInput').addEventListener('input', updateTable);
+            document.getElementById('statusFilter').addEventListener('change', updateTable);
+        });
+
+        async function loadStudents() {
+            try {
+                const res = await fetch("http://localhost:8080/api/members/all");
+                const data = await res.json();
+
+                const tbody = document.getElementById("studentsBody");
+                tbody.innerHTML = "";
+
+                data.forEach(s => {
+                    const tr = document.createElement("tr");
+                    tr.setAttribute("data-status", s.status);
+
+                    tr.innerHTML = `
+                        <td>${s.name}</td>
+                        <td>${s.member_id}</td>
+                        <td>${s.email}</td>
+                        <td>${s.phone}</td>
+                        <td>${s.books_issued}</td>
+                        <td class="overdue-count">${s.overdue}</td>
+                        <td>
+                            <span class="${s.status === 'active' ? 'status-active' : 'status-inactive'}">
+                                ${s.status}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                updateTable();
+            } catch (err) {
+                console.error("Failed to load students:", err);
+            }
+        }
+
+        function updateTable() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filter = document.getElementById('statusFilter').value;
+            const rows = document.querySelectorAll('#studentsBody tr');
+            const noResults = document.getElementById('noResults');
+
+            let visible = 0;
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const status = row.getAttribute('data-status');
+
+                const matchesSearch = text.includes(search);
+                const matchesFilter = filter === 'all' || status === filter;
+
+                if (matchesSearch && matchesFilter) {
+                    row.style.display = '';
+                    visible++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            noResults.style.display = visible === 0 ? 'block' : 'none';
+        }
+
+        function sortTable(columnIndex) {
+            const tbody = document.getElementById('studentsBody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+
+            const sortedRows = rows.sort((a, b) => {
+                const aText = a.children[columnIndex].textContent.trim();
+                const bText = b.children[columnIndex].textContent.trim();
+
+                const aNum = parseFloat(aText);
+                const bNum = parseFloat(bText);
+
+                if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+                return aText.localeCompare(bText);
+            });
+
+            if (tbody.firstChild === sortedRows[0]) sortedRows.reverse();
+
+            sortedRows.forEach(row => tbody.appendChild(row));
+        }
+    </script>
+
+    <script>
+        function openModal() {
+            document.getElementById("addStudentModal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("addStudentModal").style.display = "none";
+        }
+
+        async function submitStudent() {
+            const student = {
+                member_id: document.getElementById("newId").value.trim(),
+                name: document.getElementById("newName").value.trim(),
+                email: document.getElementById("newEmail").value.trim(),
+                phone: document.getElementById("newPhone").value.trim()
+            };
+
+            if (!student.member_id || !student.name || !student.email || !student.phone) {
+                alert("All fields required");
+                return;
+            }
+
+            const res = await fetch("http://localhost:8080/api/members/add", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(student)
+            });
+
+            if (res.ok) {
+                closeModal();
+                loadStudents();
+            } else {
+                alert("Failed to add student");
+            }
+        }
+    </script>
+
+    <!-- Add Student Modal -->
+    <div id="addStudentModal" class="modal">
+        <div class="modal-content">
+            <h3>Add New Student</h3>
+
+            <input type="text" id="newId" placeholder="Student ID">
+            <input type="text" id="newName" placeholder="Full Name">
+            <input type="email" id="newEmail" placeholder="Email">
+            <input type="text" id="newPhone" placeholder="Phone">
+
+            <div class="modal-actions">
+            <button onclick="submitStudent()">Save</button>
+            <button onclick="closeModal()" class="cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

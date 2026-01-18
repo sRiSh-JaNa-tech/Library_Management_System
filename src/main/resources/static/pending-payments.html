@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Payments - Library Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel = "stylesheet" href = "css/pending-payments.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-title" onclick="toggleSidebar()">
+            <img src="images/learning.png" alt="Logo">
+            <h1>Library System</h1>
+        </div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <a href="dashboard.html">Home</a>
+        <a href="add-books.html">Add Books</a>
+        <a href="issue-return.html">Issue/Return Books</a>
+        <a href="students.html">Students</a>
+        <a href="pending-payments.html" class="active">Pending Payments</a>
+        <a href="reports.html">Reports</a>
+        <a href="#">About</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <h2 class="page-title">Pending Payments</h2>
+        <p class="page-subtitle">Track and collect outstanding fines from students</p>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <h3>Total Pending Amount</h3>
+                <div class="amount" id="totalPending">₹0</div>
+            </div>
+            <div class="summary-card">
+                <h3>Students with Fines</h3>
+                <div class="amount" id="studentsWithFines">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>Average Fine</h3>
+                <div class="amount" id="averageFine">₹0</div>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search by student name or ID...">
+        </div>
+
+        <!-- Payments Table -->
+        <div class="table-container">
+            <table id="paymentsTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">Student Name</th>
+                        <th onclick="sortTable(1)">Student ID</th>
+                        <th onclick="sortTable(2)">Overdue Books</th>
+                        <th onclick="sortTable(3)">Total Fine</th>
+                        <th onclick="sortTable(4)">Last Transaction</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="paymentsBody"></tbody>
+            </table>
+            <p class="no-payments" id="noPayments">No pending payments found.</p>
+        </div>
+    </div>
+
+    <script>
+    if (!localStorage.getItem('isLoggedIn')) {
+        window.location.href = 'index.html';
+    }
+
+    function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    function logout() {
+        localStorage.removeItem('isLoggedIn');
+        window.location.href = 'index.html';
+    }
+
+    const searchInput = document.getElementById('searchInput');
+    const noPayments = document.getElementById('noPayments');
+
+    searchInput.addEventListener('input', updateTable);
+
+    async function loadPayments() {
+        const res = await fetch("http://localhost:8080/api/payments/pending");
+        const data = await res.json();
+
+        const tbody = document.getElementById("paymentsBody");
+        tbody.innerHTML = "";
+
+        let totalPending = 0;
+        let studentsWithFines = 0;
+
+        data.forEach(p => {
+            const tr = document.createElement("tr");
+
+            const isPaid = p.unpaid_count === 0;
+            const fine = p.total_fine || 0;
+
+            if (!isPaid && fine > 0) {
+                totalPending += fine;
+                studentsWithFines++;
+            }
+
+            const statusBtn = isPaid
+                ? `<button class="pay-btn" disabled style="background:#95a5a6">Paid ✓</button>`
+                : `<button class="pay-btn" onclick="payNow(${p.member_id})">Pay Now</button>`;
+
+            tr.innerHTML = `
+                <td>${p.name}</td>
+                <td>${p.member_id}</td>
+                <td>${p.overdue_books}</td>
+                <td class="fine-amount ${fine > 500 ? 'fine-high' : ''}">₹${fine}</td>
+                <td>${new Date(p.last_transaction).toLocaleDateString()}</td>
+                <td>${statusBtn}</td>
+            `;
+
+            tbody.appendChild(tr);
+        });
+
+        document.getElementById("totalPending").textContent = `₹${totalPending}`;
+        document.getElementById("studentsWithFines").textContent = studentsWithFines;
+        document.getElementById("averageFine").textContent =
+            studentsWithFines === 0 ? "₹0" : `₹${Math.round(totalPending / studentsWithFines)}`;
+
+        updateTable();
+    }
+
+
+    function updateTable() {
+        const search = searchInput.value.toLowerCase();
+        const rows = document.querySelectorAll('#paymentsBody tr');
+        let visible = 0;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            if (text.includes(search)) {
+                row.style.display = '';
+                visible++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        noPayments.style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    function sortTable(colIndex) {
+        const tbody = document.getElementById('paymentsBody');
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+
+        const sorted = rows.sort((a, b) => {
+            let aVal = a.children[colIndex].textContent.trim();
+            let bVal = b.children[colIndex].textContent.trim();
+
+            if (aVal.includes('₹')) {
+                return parseInt(bVal.replace(/[₹,]/g, '')) - parseInt(aVal.replace(/[₹,]/g, ''));
+            }
+
+            if (!isNaN(aVal) && !isNaN(bVal)) {
+                return parseInt(bVal) - parseInt(aVal);
+            }
+
+            return aVal.localeCompare(bVal);
+        });
+
+        sorted.forEach(row => tbody.appendChild(row));
+    }
+
+    async function payNow(memberId) {
+        if (!confirm("Mark all fines as paid for this student?")) return;
+
+        await fetch(`http://localhost:8080/api/payments/pay/member/${memberId}`, { method: "POST" });
+        loadPayments();
+    }
+
+    loadPayments();
+    </script>
+
+</body>
+</html>
